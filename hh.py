@@ -1,5 +1,5 @@
 import tensorflow as tf
-
+import matplotlib.pyplot as plt
 
 from tensorflow.keras.initializers import RandomNormal
 
@@ -19,6 +19,7 @@ OUT_DIR = 'CNN_OUT_img/'
 if not os.path.exists(OUT_DIR): ##OUT_DIR의 경로가 존재하니?
     os.makedirs(OUT_DIR)  ##존재하지 않으면 만들어라 디렉토리
 img_shape = (256, 256, 3) # 이미지 차원을 설정한다. 28*28*3
+
 epoch = 10000 # 에폭은 1만번
 batch_size = 1
 noise = 100
@@ -61,15 +62,15 @@ x = Activation("relu")(x)
 
 
 ####### resnet_9blocks
-# R128 = res_block(x, 128)
-# R128 = res_block(R128, 128)
-# R128 = res_block(R128, 128)
-# R128 = res_block(R128, 128)
-# R128 = res_block(R128, 128)
-# R128 = res_block(R128, 128)
-# R128 = res_block(R128, 128)
-# R128 = res_block(R128, 128)
-# R128 = res_block(R128, 128)
+R128 = res_block(x, 128)
+R128 = res_block(R128, 128)
+R128 = res_block(R128, 128)
+R128 = res_block(R128, 128)
+R128 = res_block(R128, 128)
+R128 = res_block(R128, 128)
+R128 = res_block(R128, 128)
+R128 = res_block(R128, 128)
+R128 = res_block(R128, 128)
 
 x = Conv2DTranspose(filters=64, kernel_size=3, strides=2, padding="same",kernel_initializer=conv_init)(x)
 x = BatchNormalization()(x)
@@ -199,8 +200,8 @@ r, c = 2, 3
 fig, axs = plt.subplots(r, c)
 titles = ['Original', 'Translated', 'Reconstructed']
 
-X_train, X_test = np.load('./CycleGAN-master/dataset/mone_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
-Y_train, Y_test = np.load('./CycleGAN-master/dataset/picture_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
+X_train, X_test = np.load('./dataset/mone_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
+Y_train, Y_test = np.load('./dataset/picture_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
 
 X_train = np.expand_dims(X_train, axis=1) #np 확장시켜서 넣는다.
 Y_train = np.expand_dims(Y_train, axis=1) #np 확장시켜서 넣는다.

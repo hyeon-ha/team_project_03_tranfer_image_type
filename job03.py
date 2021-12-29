@@ -14,41 +14,44 @@ batch_size = 1
 
 generator_model = Sequential()
 input_image = Input(shape=img_shape)
-print(input_image)
 conv_init = RandomNormal(0, 0.02)
 
-def res_block(input_data, n_filter, kernel_size=3, strides=1):
-    # x = Lambda(lambda x: tf.pad(x, [[0, 0], [1, 1], [1,1]  [0, 0]], 'REFLECT'))(input_data)
-    x = Conv2D(filters=n_filter, kernel_size=kernel_size, strides=strides,
-               kernel_initializer=conv_init)(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-
-    x = Lambda(lambda x: tf.pad(x, [[0, 0], [1, 1],[1,1]  [0, 0]], 'REFLECT'))(x)
-    x = Conv2D(filters=n_filter, kernel_size=kernel_size, strides=strides,
-               kernel_initializer=conv_init)(x)
-    x = BatchNormalization()(x)
-    shortcut = input_data  ## x
-    merged = Add()([x, shortcut])
-    return merged
+# def res_block(input_data, n_filter, kernel_size=3, strides=1):
+#
+#     x = Lambda(lambda x: tf.pad(x, [[0, 0], [3, 3], [3,3] , [0, 0]], 'REFLECT'))(input_data)
+#     x = Conv2D(filters=n_filter, kernel_size=kernel_size, strides=strides,
+#                kernel_initializer=conv_init)(x)
+#     x = BatchNormalization()(x)
+#     x = Activation("relu")(x)
+#
+#     x = Lambda(lambda x: tf.pad(x, [[0, 0], [1, 1],[1,1],  [0, 0]], 'REFLECT'))(x)
+#     x = Conv2D(filters=n_filter, kernel_size=kernel_size, strides=strides,
+#                kernel_initializer=conv_init)(x)
+#     x = BatchNormalization()(x)
+#     shortcut = input_data  ## x
+#     merged = Add()([x, shortcut])
+#     return merged
 ########################################### 생성자 모델 ###################################
-# x = Sequential()
-# x = Lambda(lambda x: tf.pad(x, [[0, 0], [3, 3], [3, 3], [0, 0]], 'REFLECT'))(input_image)
+
+
+x = Lambda(lambda x: tf.pad(x, [[0, 0], [3, 3], [3, 3], [0, 0]], 'REFLECT'))(input_image)
 x = Conv2D(filters=256, kernel_size=7, strides=1, kernel_initializer=conv_init)(input_image)
 
 x = BatchNormalization()(x)
 x = Activation("relu")(x)
 
-x = Conv2D(filters=64, kernel_size=3, strides=2, padding="same", kernel_initializer=conv_init)(x)
+
+x = Conv2D(filters=64, kernel_size=1, strides=2, padding="same", kernel_initializer=conv_init)(x)
 x = BatchNormalization()(x)
 x = Activation("relu")(x)
 
-x = Conv2D(filters=128, kernel_size=3, strides=2, padding="same", kernel_initializer=conv_init)(x)
+
+x = Conv2D(filters=128, kernel_size=1, strides=2, kernel_initializer=conv_init)(x)
 x = BatchNormalization()(x)
 x = Activation("relu")(x)
 
 
-####### resnet_9blocks
+# ####### resnet_9blocks
 # R128 = res_block(x, 128)
 # R128 = res_block(R128, 128)
 # R128 = res_block(R128, 128)
@@ -73,9 +76,12 @@ c731_3 = Conv2D(3, kernel_size=3, strides=1, activation='tanh',kernel_initialize
 output = c731_3
 
 generator_model = Model(inputs=input_image, outputs=output)
+print('##################################################################################')
 generator_model.summary()
 
-print("## Generator ##")
+
+
+
 
 ########### 판별자 생성 ####################
 input_image = Input(shape=img_shape)
@@ -98,9 +104,9 @@ output = Conv2D(1, kernel_size = 4, strides=1, padding = "same", kernel_initiali
 
 discriminator_model = Model(inputs = input_image, outputs = output)
 
-print("## Discriminator ##")
+print('#######################################################################################')
 discriminator_model.summary()
-####################### 판별자 생성자 명명 ###############################################
+print('####################### 판별자 생성자 명명 ###############################################')
 optimizer = Adam(0.0002, 0.5)
 D_A = discriminator_model   ## mone class를 구분하는 Discriminator
 D_A.compile(loss='mse', optimizer=optimizer)
@@ -162,8 +168,8 @@ r, c = 2, 3
 fig, axs = plt.subplots(r, c)
 titles = ['Original', 'Translated', 'Reconstructed']
 
-X_train, X_test = np.load('./CycleGAN-master/dataset/mone_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
-Y_train, Y_test = np.load('./CycleGAN-master/dataset/picture_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
+X_train, X_test = np.load('./dataset/mone_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
+Y_train, Y_test = np.load('./dataset/picture_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
 
 X_train = np.expand_dims(X_train, axis=1) #np 확장시켜서 넣는다.
 Y_train = np.expand_dims(Y_train, axis=1) #np 확장시켜서 넣는다.
@@ -227,5 +233,6 @@ for epoch in range(epochs):
                 cnt += 1
 
         os.mkdir("./image_gan")  # 폴더 생성
+        os.mkdir("./model")  # 폴더 생성
         fig.savefig("./image_gan/images_%d.png" % (epoch))
         generator_model.save('./model/cycle_gan_epoch{}.h5'.format(epoch))
