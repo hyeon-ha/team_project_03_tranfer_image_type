@@ -115,6 +115,29 @@ discriminator_model = Model(inputs = input_image, outputs = output)
 print("## Discriminator ##")
 discriminator_model.summary()
 ####################### 판별자 생성자 명명 ###############################################
+input_image = Input(shape=img_shape)
+instance_norm = True
+x = Conv2D(filters=64, kernel_size=4, strides=2, padding='same', kernel_initializer=conv_init)(input_image)
+
+x = Conv2D(filters=128, kernel_size=4, strides=2, padding='same', kernel_initializer=conv_init)(x)
+x = BatchNormalization()(x)
+x = LeakyReLU(alpha=0.2)(x)
+
+x = Conv2D(filters=256, kernel_size=4, strides=2, padding='same', kernel_initializer=conv_init)(x)
+x = BatchNormalization()(x)
+x = LeakyReLU(alpha=0.2)(x)
+
+x = Conv2D(filters=512, kernel_size=4, strides=2, padding='same', kernel_initializer=conv_init)(x)
+x = BatchNormalization()(x)
+x = LeakyReLU(alpha=0.2)(x)
+
+output = Conv2D(1, kernel_size = 4, strides=1, padding = "same", kernel_initializer=conv_init)(x)
+
+discriminator_model = Model(inputs = input_image, outputs = output)
+
+print("## Discriminator ##")
+discriminator_model.summary()
+####################### 판별자 생성자 명명 ###############################################
 optimizer = Adam(0.0002, 0.5)
 D_A = discriminator_model   ## mone class를 구분하는 Discriminator
 D_A.compile(loss='mse', optimizer=optimizer)
@@ -126,11 +149,13 @@ G_AB = generator_model  ## mone class --> B class  G 함수
 G_BA = generator_model ## B class --> mone class  F 함수
 
 ############################ 이미지 명명 ########################################
-# 잡음
+
 image_A = Input(shape=img_shape)  ## mone class 이미지
 image_B = Input(shape=img_shape)  ## B class 이미지
+
 # 가짜 이미지
 fake_B = G_AB(image_A)  ## B class 가짜 생성 이미지
+
 fake_A = G_BA(image_B)  ## mone class 가짜 생성 이미지
 #복원 이미지
 reconstruct_A = G_BA(fake_B)
@@ -149,7 +174,7 @@ valid_B = D_B(fake_B)  ## 가짜 B 이미지를 Discriminator_B에 넣었을 때
 
 combined = Model(inputs=[image_A, image_B], outputs = [valid_A, valid_B, reconstruct_A, reconstruct_B, identity_A, identity_B])
 
-combined.compile(loss=["mse", "mse","mae", "mae","mae", "mae"], loss_weights = [1, 1, lambda_cycle, lambda_cycle,1, 1],optimizer = optimizer)
+combined.compile(loss=["mse", "mse","mae", "mae","mae", "mae"], loss_weights = [1, 1, lambda_cycle, lambda_cycle,1, 1], optimizer = optimizer)
 
 
 ########################### 학습 ###############################################
@@ -159,28 +184,40 @@ channels = 3
 
 # cyclegan.train(epochs=200, batch_size=1, sample_interval=200)
 start_time = datetime.datetime.now()
-patch = int(img_rows / 2**4)
+patch = int(img_rows / 16)
 D_patch = (patch, patch, 1)
 
 real = np.ones((batch_size,) +  D_patch) # 1로 채운다.
+
 fake = np.zeros((batch_size,) + D_patch) # 0으로 채운다.
-epochs = 200
+
+epochs = 5000
 batch_size =1
 sample_interval = 200
 
+r, c = 2, 3
+fig, axs = plt.subplots(r, c)
+titles = ['Original', 'Translated', 'Reconstructed']
 
-X_train, X_test = np.load('dataset/mone_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
-Y_train, Y_test = np.load('dataset/picture_image.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
+X_train, X_test = np.load('./CycleGAN-master/dataset/mone_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
+Y_train, Y_test = np.load('./CycleGAN-master/dataset/picture_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
+
+X_train = np.expand_dims(X_train, axis=1) #np 확장시켜서 넣는다.
+Y_train = np.expand_dims(Y_train, axis=1) #np 확장시켜서 넣는다.
+# print('x_train:', X_train[0].shape)
 for epoch in range(epochs):
     for batch_i, (imgs_A, imgs_B) in enumerate(zip(X_train, Y_train)):
+
         fake_B = G_AB.predict(imgs_A)
         fake_A = G_BA.predict(imgs_B)
+
 
         #--------------
         # 판별기 학습
         #--------------
 
         dA_loss_real = D_A.train_on_batch(imgs_A, real) # imgs_A를 real로 학습
+
         dA_loss_fake = D_A.train_on_batch(fake_A, fake) # fake_A를 fake로 학습
         dA_loss = 0.5 * np.add(dA_loss_real, dA_loss_fake)
 
@@ -192,7 +229,7 @@ for epoch in range(epochs):
         d_loss = 0.5 * np.add(dA_loss, dB_loss)
 
         # ------------------
-        #  Generator 학습
+        #  생성기 학습
         # ------------------
 
         g_loss = combined.train_on_batch([imgs_A, imgs_B],
@@ -211,9 +248,21 @@ for epoch in range(epochs):
                  np.mean(g_loss[3:5]),
                  np.mean(g_loss[5:6]),
                  elapsed_time))
+    if epoch % 30 == 0:
+        fake_B = G_AB.predict(X_train[1])
+        fake_A = G_BA.predict(Y_train[1])
+        reconstr_A = G_BA.predict(fake_B)
+        reconstr_B = G_AB.predict(fake_A)
+        gen_imgs = np.concatenate([X_train[1], fake_B, reconstr_A, Y_train[1], fake_A, reconstr_B])
+        gen_imgs = 0.5 * gen_imgs + 0.5
+        cnt = 0
+        for i in range(r):
+            for j in range(c):
+                axs[i, j].imshow(gen_imgs[cnt])
+                axs[i, j].set_title(titles[j])
+                axs[i, j].axis('off')
+                cnt += 1
 
-        # If at save interval => save generated image samples
-        # if batch_i % sample_interval == 0:
-        #     sample_images(epoch, batch_i)
-
-generator_model.save('./generator_mnist_{}.h5'.format(1))
+        os.mkdir("./image_gan")  # 폴더 생성
+        fig.savefig("./image_gan/images_%d.png" % (epoch))
+        generator_model.save('./model/cycle_gan_epoch{}.h5'.format(epoch))

@@ -212,11 +212,11 @@ for epoch in range(epochs):
                  np.mean(g_loss[5:6]),
                  elapsed_time))
     if epoch % 30 == 0:
-        fake_B = G_AB.predict(X_train[0])
-        fake_A = G_BA.predict(Y_train[0])
+        fake_B = G_AB.predict(X_train[1])
+        fake_A = G_BA.predict(Y_train[1])
         reconstr_A = G_BA.predict(fake_B)
         reconstr_B = G_AB.predict(fake_A)
-        gen_imgs = np.concatenate([X_train[0], fake_B, reconstr_A, Y_train[0], fake_A, reconstr_B])
+        gen_imgs = np.concatenate([X_train[1], fake_B, reconstr_A, Y_train[1], fake_A, reconstr_B])
         gen_imgs = 0.5 * gen_imgs + 0.5
         cnt = 0
         for i in range(r):
@@ -225,5 +225,7 @@ for epoch in range(epochs):
                 axs[i, j].set_title(titles[j])
                 axs[i, j].axis('off')
                 cnt += 1
+
+        os.mkdir("./image_gan")  # 폴더 생성
         fig.savefig("./image_gan/images_%d.png" % (epoch))
         generator_model.save('./model/cycle_gan_epoch{}.h5'.format(epoch))
