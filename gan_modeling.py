@@ -167,8 +167,8 @@ batch_size =1
 sample_interval = 200
 
 
-X_train, X_test = np.load('dataset/mone_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
-Y_train, Y_test = np.load('dataset/picture_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
+X_train, X_test = np.load('CycleGan-master/dataset/mone_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
+Y_train, Y_test = np.load('CycleGan-master/dataset/picture_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
 for epoch in range(epochs):
     for batch_i, (imgs_A, imgs_B) in enumerate(zip(X_train, Y_train)):
         fake_B = G_AB.predict(imgs_A)

@@ -167,8 +167,8 @@ batch_size =1
 sample_interval = 200
 
 
-X_train, X_test = np.load('dataset/mone_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
-Y_train, Y_test = np.load('dataset/mone_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
+X_train, X_test = np.load('CycleGan-master/dataset/mone_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
+Y_train, Y_test = np.load('CycleGan-master/dataset/mone_image_data.npy', allow_pickle = True) # pickle 은 객체의 형태를 그대로 유지하며 저장
 print(X_train.shape)
 X_train = np.expand_dims(X_train, axis=1) #np 확장시켜서 넣는다.
 Y_train = np.expand_dims(Y_train, axis=1) #np 확장시켜서 넣는다.
