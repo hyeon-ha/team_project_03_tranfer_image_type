@@ -8,11 +8,11 @@ from PIL import Image # pillow 설치
 batch_size=2
 is_testing=False
 
-path_A = glob('dataset/A/*.jpg')
+path_A = glob('CycleGan-master/dataset/A/*.jpg')
 
 
 
-path_B = glob('dataset/B/*.jpg')
+path_B = glob('CycleGan-master/dataset/B/*.jpg')
 
 
 
@@ -71,7 +71,7 @@ Y=[]
 files = None
 
 
-files = glob.glob('dataset/B/*.jpg')
+files = glob.glob('CycleGan-master/dataset/B/*.jpg')
 for i, f in enumerate(files):
     try:
         img = Image.open(f)
@@ -100,5 +100,5 @@ print(X[0])
 print(Y[:5])
 Y_train, Y_test = train_test_split(X, test_size=0.1)
 xy= (Y_train, Y_test)
-np.save('dataset/picture_image_data.npy', xy)
+np.save('CycleGan-master/dataset/picture_image_data.npy', xy)
 print(len(X))
